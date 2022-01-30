@@ -6,5 +6,9 @@
     "wrong_argument_type2": "Должно быть ",
     "command_enter": "Введите команду: ",
     "yes_no_invalid_input": "Недействительный ввод. Выберите Y или N.",
-    "exit_message": "Вы действительно хотите выйти"
+    "exit_message": "Вы действительно хотите выйти",
+
+    "nothing_to_find": "Не похоже, что тут что-то еще осталось",
+    "nothing_found": "Ничего не найдено",
+    "found_something": "Кое-что найдено:"
 }
