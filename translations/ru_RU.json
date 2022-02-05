@@ -1,12 +1,19 @@
 {
     "hello": "Мы (кто мы-то нахуй) приветствуем вас в ХуйName игре версии 0.1488",
     "wrong_command": "Неверная команда",
-    "wrong_arguments_amount": "Неверное кол-во аргументов. Должно быть",
+    "wrong_arguments_amount1": "Неверное кол-во аргументов. Должно быть от",
+    "wrong_arguments_amount2": "до",
     "wrong_argument_type1": "Неверный тип аргумента ",
     "wrong_argument_type2": "Должно быть ",
     "command_enter": "Введите команду: ",
     "yes_no_invalid_input": "Недействительный ввод. Выберите Y или N.",
+    "choose_menu_answer": "Выберите вариант ответа из предложенных: ",
+    "wrong_menu_answer": "Неверный вариант",
     "exit_message": "Вы действительно хотите выйти",
+    "new_game_choose": "Начать новую игру",
+
+    "game_info": "Пишите команды, получайте вывод",
+    "wrong_func_info": "Нет функции",
 
     "nothing_to_find": "Не похоже, что тут что-то еще осталось",
     "nothing_found": "Ничего не найдено",
