@@ -3,6 +3,8 @@ import inspect
 import json
 import logging
 import math
+import os
+import pickle
 import random
 from typing import Any, Callable, Optional
 
@@ -28,15 +30,20 @@ MONTHS_DURATION = {
     12: 31
 }
 
+# Types
 _F = Callable[[], Optional[Any]]
 _FARGS = tuple[Optional[Any], ...] | list[Optional[Any]]
 
 ############################################################################
 #                            Global functions                              #
 ############################################################################
-def get_json_file(path: str) -> dict[str, str]:
+def read_json_file(path: str) -> dict[str, str]:
     with open(path, encoding="utf-8") as json_file:
         return json.load(json_file)
+
+def write_json_file(obj: object, path: str):
+    with open(path, mode="w", encoding="utf-8") as json_file:
+        return json.dump(obj, json_file)
 
 ############################################################################
 #                             Global Classes                               #
@@ -177,14 +184,17 @@ class Character:
     id: str
     inventory: Container = Container()
     equipment: dict[str, ItemEquipment | None] = {}
+    position: Position = Position()
     stats: dict = {}
 
 
-@attr.define
+@attr.define(hash=True)
 class Event:
-    name: str
-    trigger: Callable
-    action: Callable
+    action: Callable[[], Any]
+    trigger: Callable[[], bool]
+    max_triggers_number: int
+    cur_triggers_number: int = 0
+    chance: float = 0.5
 
 
 @attr.define
@@ -193,11 +203,11 @@ class Location:
     Базовый класс локации
     """
     name: str
-    characters: list[Character] = []
-    events: list[Event] = []
+    characters: list[Character] = attr.Factory(list)
+    events: list[Event] = attr.Factory(list)
     loot: Container = Container()
     loot_chance: float = 0.5
-
+    times_visited: int = 0
 
 @attr.define(hash=True)
 class LocationCity(Location):
@@ -208,7 +218,6 @@ class LocationCity(Location):
 class LocationForest(Location):
     name: str = "Forest"
 
-
 ############################################################################
 #                                Main Class                                #
 ############################################################################
@@ -216,6 +225,56 @@ class Game:
     """
     Главный класс игры, все взаимодействия здесь, почти все функции здесь
     """
+    ############################################################################
+    #                                Game Content                              #
+    ############################################################################
+    ## Events
+    def test_event1_trigger(self) -> bool:
+        if self.cur_location.times_visited == 1:
+            return True
+        return False
+
+    def test_event1(self):
+        print("You came to location for the 1st time")
+
+    def test_event2_trigger(self) -> bool:
+        return True
+
+    def test_event2(self):
+        print("This event is persistent")
+
+    ## Locations
+    def locations(self):
+        return {
+            LocationCity: [5, 0.5],
+            LocationForest: [-1, 0.5]
+        }
+
+    def locations_loot(self):
+        return {
+            LocationCity: {
+                Item("Bread"): [2, 0.35],
+                Item("Water"): [2, 0.1],
+                Item("Knife"): [1, 0.05]
+            },
+            LocationForest: {
+                Item("Bread"): [2, 0.1],
+                Item("Water"): [2, 0.25],
+                Item("Stick"): [5, 0.4]
+            }
+        }
+
+    def locations_events(self):
+        return {
+            LocationCity: (
+                Event(self.test_event1, self.test_event1_trigger, 1),
+            ),
+            LocationForest: (
+                Event(self.test_event1, self.test_event1_trigger, 1),
+                Event(self.test_event2, self.test_event2_trigger, 1)
+            )
+        }
+
     ############################################################################
     #                          Not In-Game Methods                             #
     ############################################################################
@@ -267,9 +326,9 @@ class Game:
             x (int, optional): Расстояние вправо. Defaults to 0.
             y (int, optional): Расстояние вверх. Defaults to 0.
         """
-        if self.rogue_like or f"{self.position.x + x}; {self.position.y + y}" in self.map:
-            self.position.x += x
-            self.position.y += y
+        if settings["rogue_like"] or f"{self.player.position.x + x}; {self.player.position.y + y}" in self.map:
+            self.player.position.x += x
+            self.player.position.y += y
             self.update_map()
 
     def rotation_movement(self, distance: float, angle: float, angle_in_degrees: bool = True):
@@ -294,7 +353,7 @@ class Game:
         Returns:
             tuple[int, int]: кортеж с координатами как в self.map
         """
-        return (self.position.x, self.position.y)
+        return (self.player.position.x, self.player.position.y)
 
     @property
     def cur_location(self):
@@ -306,14 +365,14 @@ class Game:
         """
         return self.map[self.map_coords]
 
-    def update_map(self, loot_amount: int = 2):
+    def update_map(self, loot_amount: int = 2, events_amount: int = 1):
         """
         Создание карты, если режим рогалика включен
 
         Args:
             loot_amount (int, optional): Кол-во лута на каждой создаваемой локации. Defaults to 2.
         """
-        if self.rogue_like and self.map_coords not in self.map:
+        if settings["rogue_like"] and self.map_coords not in self.map:
             chosen_location = random.choices(
                 tuple(self.location_pool.keys()),
                 tuple(zip(*self.location_pool.values()))[1]
@@ -327,13 +386,29 @@ class Game:
                     chosen_loot[chosen_loot_item] = self.location_loot_pool[chosen_location][chosen_loot_item]
                     i += 1
 
-            self.map[self.map_coords] = chosen_location(loot=chosen_loot)
+            i = 0
+            chosen_events = []
+            while i < events_amount:
+                chosen_event = random.choice(self.location_events_pool[chosen_location])
+                if chosen_event not in chosen_events:
+                    chosen_events.append(chosen_event)
+                    i += 1
+
+            self.map[self.map_coords] = chosen_location(loot=chosen_loot, events=chosen_events)
             self.location_pool[chosen_location][0] -= 1
             if self.location_pool[chosen_location][0] == 0:
                 self.location_pool.pop(chosen_location)
 
+        self.cur_location.times_visited += 1
+
+        for event in self.cur_location.events:
+            if event.trigger():
+                event.action()
+
     def update(self):
-        pass
+        for event in self.event_queue:
+            if event.trigger():
+                event.action()
 
     def main_cycle(self):
         while self.game_active:
@@ -345,32 +420,31 @@ class Game:
     ############################################################################
 
     ## Movement
-    # Для "обычных" углов можно использовать movement() напрямую, может увеличить скорость
     # 90 degrees
     def north(self):
-        self.rotation_movement(1, 0)
+        self.movement(0, -1)
 
     def south(self):
-        self.rotation_movement(1, 180)
-
-    def east(self):
-        self.rotation_movement(1, 90)
+        self.movement(0, 1)
 
     def west(self):
-        self.rotation_movement(1, 270)
+        self.movement(-1, 0)
+
+    def east(self):
+        self.movement(1, 0)
 
     # 45 degrees
     def north_east(self):
-        self.rotation_movement(2, 45)
+        self.movement(1, -1)
 
     def south_east(self):
-        self.rotation_movement(2, 135)
+        self.movement(1, 1)
 
     def south_west(self):
-        self.rotation_movement(2, 225)
+        self.movement(-1, 1)
 
     def north_west(self):
-        self.rotation_movement(2, 315)
+        self.movement(-1, -1)
 
     ## Interaction
     def search(self, search_time: int = 1):
@@ -401,7 +475,7 @@ class Game:
             print(text_pool["game_info"])
 
     def get_position(self):
-        print(f"x: {self.position.x}\ny: {self.position.y}")
+        print(f"x: {self.player.position.x}\ny: {self.player.position.y}")
 
     def examine_location(self):
         print(self.cur_location)
@@ -420,6 +494,26 @@ class Game:
     def new_game(self):
         self.update_map()
         self.main_cycle()
+
+    def save(self, save_name: str = "save"):
+        with open(f"./saves/{save_name}.sav", "wb") as save_file:
+            pickle.dump(self.saved_variables, save_file)
+
+    def load(self, save_name: str = "save"):
+        if not os.path.exists(f"./saves/{save_name}.sav"):
+            print(text_pool["save_not_found_error"])
+
+        variables = []
+        with open(f"./saves/{save_name}.sav", "rb") as save_file:
+            while True:
+                try:
+                    variables.append(pickle.load(save_file))
+                except EOFError:
+                    break
+        variables = variables[0]
+
+        for name, value in variables.items():
+            setattr(self, name, value)
 
     # Exit
     def exit_yes(self):
@@ -445,8 +539,10 @@ class Game:
     ############################################################################
 
     def __init__(self):
-        # Pools
+        ## Commands
         system_commands = {
+            "save": self.save,
+            "load": self.load,
             "exit": self.exit,
             "gll": self.get_logging_level,
             "sll": self.set_logging_level,
@@ -506,33 +602,35 @@ class Game:
             **interaction_commands,
             **info_commands
         )
-        self.location_pool = {
-            LocationCity: [5, 0.5],
-            LocationForest: [-1, 0.5]
-        }
-        self.location_loot_pool = {
-            LocationCity: {
-                Item("Bread"): [2, 0.35],
-                Item("Water"): [2, 0.1],
-                Item("Knife"): [1, 0.05]
-            },
-            LocationForest: {
-                Item("Bread"): [2, 0.1],
-                Item("Water"): [2, 0.25],
-                Item("Stick"): [5, 0.4]
-            }
-        }
 
-        # Settings
-        self.rogue_like: bool = True
+        ## Rogue-Like shit
+        # Locations
+        self.location_pool = self.locations()
+        self.location_loot_pool = self.locations_loot()
+        self.location_events_pool = self.locations_events()
 
-        # In-Game vars
+        ## In-Game vars
         self.game_active: bool = True
+
+        ## Saved variables
         self.time: Time = Time()
         self.event_queue: list[Event] = []
         self.player: Character = Character("Alice", "al")
-        self.position: Position = Position()
         self.map: dict[tuple[int, int], Location] = {}
+
+        if settings["rogue_like"]:
+            self.saved_variables = {
+                "time": self.time,
+                "event_queue": self.event_queue,
+                "player": self.player,
+                "map": self.map
+            }
+        else:
+            self.saved_variables = {
+                "time": self.time,
+                "event_queue": self.event_queue,
+                "player": self.player
+            }
 
     def type_casting(self, args: list[Any]):
         for i, arg in enumerate(args):
@@ -587,7 +685,7 @@ class Game:
 
 
 if __name__ == "__main__":
-    text_pool = get_json_file("./translations/ru_RU.json")
-    settings = get_json_file("./settings.json")
+    text_pool = read_json_file("./translations/ru_RU.json")
+    settings = read_json_file("./settings.json")
     game = Game()
     game.main()

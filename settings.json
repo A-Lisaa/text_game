@@ -1,6 +1,4 @@
 {
-    "game":
-    {
-        "temperature_in_celsius": true
-    }
+    "rogue_like": true,
+    "temperature_in_celsius": true
 }
