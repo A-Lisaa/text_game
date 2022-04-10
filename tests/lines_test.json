@@ -1,0 +1,6 @@
+{
+    "test_string": "String for Test",
+    "test_int": 1488,
+    "test_float": 666.666,
+    "test_bool": true
+}

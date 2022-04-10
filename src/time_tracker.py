@@ -3,7 +3,7 @@ import attr
 from utils.constants import MONTHS_DURATION
 from utils.logger import get_logger
 
-_logger = get_logger(__name__)
+_logger = get_logger(__file__)
 
 @attr.define
 class Time:

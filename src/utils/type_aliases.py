@@ -1,7 +1,7 @@
-from collections.abc import Callable
-from typing import Any, TypeAlias
+from collections.abc import Callable, Mapping, Sequence
+from typing import Any
 
-Func: TypeAlias = Callable[[], Any | None]
-FuncArgs: TypeAlias = tuple[Any | None, ...] | list[Any | None]
-FuncKwargs: TypeAlias = dict[str, Any]
-FuncTuple: TypeAlias = tuple[Func, FuncArgs, FuncKwargs]
+Func = Callable[..., Any]
+FuncArgs = Sequence[Any]
+FuncKwargs = Mapping[str, Any]
+FuncTuple = tuple[Func, FuncArgs, FuncKwargs]

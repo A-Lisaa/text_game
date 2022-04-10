@@ -1,7 +1,5 @@
 from typing import Final
 
-PI_HALF: Final[float] = 1.5707963267948966192313216916398
-FIVE_OVER_NINE: Final[float] = 0.55555555555555555555555555555556
 MONTHS_DURATION: Final[dict[float, int]] = {
     1: 31,
     # 2.25 - високосный февраль, ибо раз в 4 года (1/4 = 0,25)

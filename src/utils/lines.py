@@ -1,11 +1,12 @@
-from __init_paths__ import lines_path
-from files_IO import read_json_file, write_json_file
-from logger import get_logger
+from .cfg import Config
+from .files_IO import read_json_file, write_json_file
+from .logger import get_logger
 
-_logger = get_logger(__name__)
+_logger = get_logger(__file__)
+_config = Config()
 
 class Lines:
-    def __init__(self, lines_filepath: str = lines_path):
+    def __init__(self, lines_filepath: str = _config["lines_path"]):
         self.lines_filepath = lines_filepath
         self._lines = self._get_lines()
 

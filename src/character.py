@@ -3,16 +3,15 @@ import random
 
 import attr
 
-from location import Location
 from plan import Plan
 from position import Position
+from room import Room
 from utils.cfg import Config
-from utils.constants import PI_HALF
 from utils.container import Container
 from utils.lines import Lines
 from utils.logger import get_logger
 
-_logger = get_logger(__name__)
+_logger = get_logger(__file__)
 _config = Config()
 _lines = Lines()
 
@@ -27,7 +26,7 @@ class Character:
     stats: dict = {}
     schedule: dict = {}
 
-    def search(self, location: Location, search_time: int = 1):
+    def search(self, location: Room, search_time: int = 1):
         if len(location.loot) > 0:
             for _ in range(search_time):
                 if random.random() < location.loot_chance:
@@ -70,11 +69,12 @@ class Character:
             angle (float): угол под которым перемещаться, градусы или радианы
             angle_in_degrees (bool, optional): угол в градусах или в радианах, True - градусы. Defaults to True.
         """
+        # 1.57 = pi/2
         if angle_in_degrees:
             angle = math.radians(angle)
         self.movement(
-            round(math.cos(angle - PI_HALF)*distance),
-            round(math.sin(angle + PI_HALF)*distance)
+            round(math.cos(angle - 1.57)*distance),
+            round(math.sin(angle + 1.57)*distance)
         )
 
     # 90 degrees

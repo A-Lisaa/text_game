@@ -1,7 +1,7 @@
 import logging
 import os
 
-from __init_paths__ import logs_path
+from .__init_paths__ import logs_path
 
 
 def get_logger(

@@ -6,7 +6,7 @@ from utils.cfg import Config
 from utils.lines import Lines
 from utils.logger import get_logger
 
-_logger = get_logger(__name__)
+_logger = get_logger(__file__)
 _config = Config()
 _text_pool = Lines()
 

@@ -1,9 +1,9 @@
+from room import RoomCity, RoomForest
 from src.event import Event
 from src.item import Item
-from src.location import LocationCity, LocationForest
 
 locations_pool = {
-    LocationCity: {
+    RoomCity: {
         "generation": (5, 1),
         "loot": {
             (Item("Bread"), 2, 1): (2, 1),
@@ -14,7 +14,7 @@ locations_pool = {
         }
     },
 
-    LocationForest: {
+    RoomForest: {
         "generation": (-1, 2),
         "loot": {
             (Item("Bread"), 1, 1): (1, 1),

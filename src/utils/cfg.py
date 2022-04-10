@@ -2,12 +2,12 @@ import json
 import os
 from typing import Any
 
-from __init_paths__ import settings_path
-from cfg_default import CFG_DEFAULT
-from files_IO import read_json_file, write_json_file
-from logger import get_logger
+from .__init_paths__ import settings_path
+from .cfg_default import CFG_DEFAULT
+from .files_IO import read_json_file, write_json_file
+from .logger import get_logger
 
-_logger = get_logger(__name__)
+_logger = get_logger(__file__)
 
 class Config:
     def __init__(self, settings_filepath: str = settings_path):
@@ -55,7 +55,7 @@ class Config:
             return name
 
     def set_default(self, name: str):
-        self.set_setting(name, self.get_setting(name))
+        self.set_setting(name, self.get_default(name))
         _logger.debug("Setting %s set to default", name)
 
     def set_all_defaults(self):

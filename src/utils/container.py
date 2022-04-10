@@ -1,9 +1,9 @@
 from collections import UserDict
 from typing import Any
 
-from logger import get_logger
+from .logger import get_logger
 
-_logger = get_logger(__name__)
+_logger = get_logger(__file__)
 
 class Container(UserDict):
     def __init__(self, default_value: Any = 0):
@@ -19,4 +19,4 @@ class Container(UserDict):
         if value == self.default_value:
             self.data.pop(key)
         else:
-            super().__setitem__(key, value)
+            self.data[key] = value

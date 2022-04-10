@@ -24,8 +24,4 @@ class ContainerTest(unittest.TestCase):
         container["test"] = 666
         self.assertEqual(container["test"], 666)
         container["test"] -= 666
-        self.assertEqual(container["test"], 0)
-
-
-if __name__ == "__main__":
-    unittest.main()
+        self.assertEqual(hasattr(container, "test"), False)

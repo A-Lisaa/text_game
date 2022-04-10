@@ -2,9 +2,9 @@ import json
 import os
 from typing import Any
 
-from logger import get_logger
+from .logger import get_logger
 
-_logger = get_logger(__name__)
+_logger = get_logger(__file__)
 
 def read_json_file(path: str) -> dict[str, str]:
     if not os.path.exists(path):

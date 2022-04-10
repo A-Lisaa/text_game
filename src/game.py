@@ -5,13 +5,15 @@ from typing import Any
 from character import Character
 from event import Event
 from plan import Plan
-from text import yes_no_prompt
 from time_tracker import Time
-from utils import get_settings, get_text
+from ui.base_ui import UI
+from ui.cli import CLI
+from utils.cfg import Config
+from utils.lines import Lines
 from utils.type_aliases import Func, FuncArgs
 
-settings = get_settings()
-text = get_text()
+config = Config()
+lines = Lines()
 
 
 class Game:
@@ -22,7 +24,7 @@ class Game:
     def undo_update(self):
         self.undo_queue.append(self.saved_variables)
 
-        if len(self.undo_queue) > settings["undo_depth"]:
+        if len(self.undo_queue) > config["undo_depth"]:
             self.undo_queue.pop(0)
 
     def events_update(self):
@@ -46,11 +48,11 @@ class Game:
     def info(self, func: str | None = None):
         if func is not None:
             if func in self.command_pool:
-                print(inspect.getdoc(self.command_pool[func]))
+                self.ui.print(inspect.getdoc(self.command_pool[func]))
             else:
-                print(text_pool["wrong_func_info"], func)
+                self.ui.print(lines["wrong_func_info"], func)
         else:
-            print(text_pool["game_info"])
+            self.ui.print(lines["game_info"])
 
     def undo(self):
         for name, value in self.undo_queue[-1].items():
@@ -61,7 +63,7 @@ class Game:
     def quit(self):
         def yes():
             self.active = False
-        yes_no_prompt(text_pool["quit_message"], (yes, (), {}))
+        self.ui.yes_no_prompt(lines["quit_message"], (yes, (), {}))
 
     def new_game(self):
         self.update_map()
@@ -71,9 +73,10 @@ class Game:
     #                             Base Game Methods                            #
     ############################################################################
 
-    def __init__(self):
+    def __init__(self, ui: UI):
 
         ## In-Game vars
+        self.ui = ui
         self.active: bool = True
 
         ## Saved variables
@@ -87,7 +90,7 @@ class Game:
             "event_queue": self.event_queue,
             "player": self.player
         }
-        if settings["rogue_like"]:
+        if config["rogue_like"]:
             self.saved_variables["map"] = self.map
         self.undo_queue: list[dict[str, Any]] = []
 
@@ -149,7 +152,7 @@ class Game:
             **interaction_commands,
             **info_commands
         )
-        if settings["debug_enabled"]:
+        if config["debug_enabled"]:
             self.command_pool.update(
                 debug_commands
             )
@@ -157,21 +160,27 @@ class Game:
 
     def type_casting(self, args: list[Any]):
         for i, arg in enumerate(args):
-            if arg.isdigit():
-                args[i] = int(arg)
-            elif "." in arg and arg.replace(".", "", 1).isdigit():
-                args[i] = float(arg)
-            elif arg.lower() in ("true", "false"):
+            arg = str(arg).lower()
+            if arg in ("true", "false"):
                 args[i] = bool(arg)
-            elif arg.lower() == "none":
+            elif arg == "none":
                 args[i] = None
+            else:
+                try:
+                    if arg.find(".") == 1 or arg.find(",") == 1:
+                        args[i] = float(arg)
+                except ValueError:
+                    try:
+                        args[i] = int(arg)
+                    except ValueError:
+                        pass
 
         return args
 
     def get_input(self):
         user_input = str()
         while not user_input:
-            user_input = input(text_pool["command_enter"]).split(maxsplit=1)
+            user_input = self.ui.input(lines["command_enter"]).split(maxsplit=1)
 
         return (
             user_input[0].lower(),  # ! lower() используется. если команды регистрочувствительны - это проблема
@@ -189,26 +198,34 @@ class Game:
                 for arg, expected_arg in zip(args, sig.parameters):
                     expected_type = sig.parameters[expected_arg].annotation
                     if not isinstance(arg, expected_type):
-                        print(text_pool["wrong_argument_type1"], arg, ". ",
-                              text_pool["wrong_argument_type2"], expected_type, sep="")
+                        self.ui.print(
+                            lines["wrong_argument_type1"], arg, ". ",
+                            lines["wrong_argument_type2"], expected_type, sep=""
+                        )
                         break
                 else:
                     self.command_pool[command](*args)
-                    logging.debug("Executed %s with arguments: %s",
-                                  self.command_pool[command], *args)
+                    logging.debug(
+                        "Executed %s with arguments: %s",
+                        self.command_pool[command], *args
+                    )
             else:
-                print(text_pool["wrong_arguments_amount1"], expected_args_minimum_amount,
-                      text_pool["wrong_arguments_amount2"], expected_args_maximum_amount)
+                self.ui.print(
+                    lines["wrong_arguments_amount1"], expected_args_minimum_amount,
+                    lines["wrong_arguments_amount2"], expected_args_maximum_amount
+                )
         else:
-            print(text_pool["wrong_command"])
+            self.ui.print(lines["wrong_command"])
 
     def main(self):
-        print(text_pool["hello"])
-        self.menu({text_pool["new_game_choose"]: (self.new_game, ())})
+        self.ui.print(lines["hello"])
+        self.ui.menu({lines["new_game_choose"]: (self.new_game, (), {})})
 
+
+def main():
+    ui = CLI()
+    game = Game(ui)
+    game.main()
 
 if __name__ == "__main__":
-    text_pool = read_json_file("./translations/ru_RU.json")
-    settings = read_json_file("./settings.json")
-    game = Game()
-    game.main()
+    main()

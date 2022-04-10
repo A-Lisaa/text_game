@@ -2,23 +2,23 @@ import random
 
 import attr
 
-from location import Location
 from position import Position
-from utils import get_settings
+from room import Room
+from utils.cfg import Config
 from utils.container import Container
 from utils.logger import get_logger
 
-_settings = get_settings()
-_logger = get_logger(__name__)
+_config = Config()
+_logger = get_logger(__file__)
 
 @attr.define
 class Plan:
-    _plan: dict[Position, Location] = {}
+    _plan: dict[Position, Room] = {}
 
     @classmethod
     def from_scratch(cls):
         _logger.debug("Made a Plan from scratch")
-        return cls
+        return cls()
 
     @classmethod
     def from_json(cls, filepath: str):
@@ -39,7 +39,6 @@ class Plan:
         Args:
             loot_amount (int, optional): Кол-во лута на каждой создаваемой локации. Defaults to 2.
         """
-        # TODO: Logging when it will be working
         if _settings["rogue_like"] and not self.position_exists(position):
             chosen_location = random.choices(
                 tuple(locations_pool.keys()),
