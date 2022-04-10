@@ -1,7 +1,8 @@
 import attr
 
-from utils.constants import MONTHS_DURATION
-from utils.logger import get_logger
+from .utils.__init_paths__ import data_path
+from .utils.files_IO import read_json_file
+from .utils.logger import get_logger
 
 _logger = get_logger(__file__)
 
@@ -16,7 +17,7 @@ class Time:
     _hour: int = 0
     _minute: int = 0
     _second: int = 0
-    months_duration: dict[float, int] = MONTHS_DURATION
+    months_duration: dict[str, int] = read_json_file(f"{data_path}/months_duration.json")
 
     def is_leap_year(self, year: int | None = None) -> bool:
         """Проверка года на високосность, если year = None, проверяется текущий год класса
@@ -29,9 +30,9 @@ class Time:
         """
         if year is None:
             year = self.year
-        if year % 4 != 0 and year % 100 == 0 and year % 400 != 0:
-            return False
-        return True
+        if year % 4 == 0 and year % 100 != 0 and year % 400 == 0:
+            return True
+        return False
 
     @property
     def year(self):
@@ -63,9 +64,9 @@ class Time:
         while d >= 28:
             if self.month == 2:
                 # костыли говна из-за високосности
-                current_month_duration = self.months_duration[2.25 if self.is_leap_year() else 2.75]
+                current_month_duration = self.months_duration["2.25" if self.is_leap_year() else "2.75"]
             else:
-                current_month_duration = self.months_duration[self.month]
+                current_month_duration = self.months_duration[str(self.month)]
             if d >= current_month_duration - self._day - 1:
                 self.month += 1
                 d -= current_month_duration

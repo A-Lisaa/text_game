@@ -1,8 +1,8 @@
 import attr
 
-from character import Character
-from event import Event
-from utils.container import Container
+from .character import Character
+from .event import Event
+from .utils.container import Container
 
 
 @attr.define
@@ -18,11 +18,11 @@ class Room:
     loot_chance: float = 0.5
 
 
-@attr.define(hash=True)
+@attr.define
 class RoomCity(Room):
     name = "City"
 
 
-@attr.define(hash=True)
+@attr.define
 class RoomForest(Room):
     name = "Forest"

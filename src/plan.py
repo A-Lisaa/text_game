@@ -2,11 +2,11 @@ import random
 
 import attr
 
-from position import Position
-from room import Room
-from utils.cfg import Config
-from utils.container import Container
-from utils.logger import get_logger
+from .position import Position
+from .room import Room
+from .utils.cfg import Config
+from .utils.container import Container
+from .utils.logger import get_logger
 
 _config = Config()
 _logger = get_logger(__file__)

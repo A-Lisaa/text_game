@@ -11,6 +11,11 @@ _logger = get_logger(__file__)
 
 class Config:
     def __init__(self, settings_filepath: str = settings_path):
+        """Класс конфига, получайте и ставьте значения через кв. скобки или методами
+
+        Args:
+            settings_filepath (str, optional): Путь к файлу настроек. Defaults to settings_path.
+        """
         self.settings_filepath = settings_filepath
         self._settings = self._get_settings()
         self._defaults = json.loads(CFG_DEFAULT)
@@ -61,3 +66,8 @@ class Config:
     def set_all_defaults(self):
         self._settings = self._defaults
         _logger.debug("All settings set to default")
+
+    def update_settings(self, settings_filepath: str | None = None):
+        if settings_filepath is not None:
+            settings_filepath = self.settings_filepath
+        self._settings = self._get_settings()

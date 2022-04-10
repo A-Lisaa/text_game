@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import attr
 
 
-@attr.define(hash=True)
+@attr.define
 class Event(ABC):
     max_triggers_number: int = -1
     trigger_chance: float = 0.5

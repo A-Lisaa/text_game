@@ -6,17 +6,22 @@ from .logger import get_logger
 _logger = get_logger(__file__)
 
 class Container(UserDict):
-    def __init__(self, default_value: Any = 0):
+    def __init__(self, no_value: Any = 0):
+        """Словарь, который вернет no_value, если элемента нет и уберет элемент, если значение равно no_value
+
+        Args:
+            no_value (Any, optional): Значение, которое эквивалентно отсутствию. Defaults to 0.
+        """
         super().__init__()
-        self.default_value = default_value
+        self.no_value = no_value
 
     def __missing__(self, key: Any):
-        self.data[key] = self.default_value
-        _logger.debug("Container key %s is missing, set to default value %s", key, self.default_value)
+        self.data[key] = self.no_value
+        _logger.debug("Container key %s is missing, set to value %s", key, self.no_value)
         return self.data[key]
 
     def __setitem__(self, key: Any, value: Any):
-        if value == self.default_value:
+        if value == self.no_value:
             self.data.pop(key)
         else:
             self.data[key] = value

@@ -7,6 +7,11 @@ _config = Config()
 
 class Lines:
     def __init__(self, lines_filepath: str = _config["lines_path"]):
+        """Держатель текста, работать через кв. скобки или через методы
+
+        Args:
+            lines_filepath (str, optional): Путь к файлу с текстом. Defaults to _config["lines_path"].
+        """
         self.lines_filepath = lines_filepath
         self._lines = self._get_lines()
 
@@ -27,7 +32,6 @@ class Lines:
         write_json_file(self._lines, line_filepath)
 
     def get_line(self, name: str) -> str:
-        self._lines = self._get_lines()
         try:
             return self._lines[name]
         except KeyError:
@@ -38,3 +42,8 @@ class Lines:
         self._lines[name] = value
         self._set_lines()
         _logger.info("Line %s set with value: %s", name, value)
+
+    def update_lines(self, lines_filepath: str | None = None):
+        if lines_filepath is None:
+            lines_filepath = self.lines_filepath
+        self._lines = self._get_lines(lines_filepath)

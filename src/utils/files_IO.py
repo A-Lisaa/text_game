@@ -6,7 +6,7 @@ from .logger import get_logger
 
 _logger = get_logger(__file__)
 
-def read_json_file(path: str) -> dict[str, str]:
+def read_json_file(path: str) -> dict[str, Any]:
     if not os.path.exists(path):
         _logger.error("Could not find file %s", path)
         return {}

@@ -1,19 +1,19 @@
 import inspect
-import logging
 from typing import Any
 
-from character import Character
-from event import Event
-from plan import Plan
-from time_tracker import Time
-from ui.base_ui import UI
-from ui.cli import CLI
-from utils.cfg import Config
-from utils.lines import Lines
-from utils.type_aliases import Func, FuncArgs
+from .character import Character
+from .engine import Engine
+from .event import Event
+from .plan import Plan
+from .time_tracker import Time
+from .ui.base_ui import UI
+from .ui.cli import CLI
+from .utils.cfg import Config
+from .utils.lines import Lines
+from .utils.type_aliases import Func
 
-config = Config()
-lines = Lines()
+_config = Config()
+_lines = Lines()
 
 
 class Game:
@@ -24,7 +24,7 @@ class Game:
     def undo_update(self):
         self.undo_queue.append(self.saved_variables)
 
-        if len(self.undo_queue) > config["undo_depth"]:
+        if len(self.undo_queue) > _config["undo_depth"]:
             self.undo_queue.pop(0)
 
     def events_update(self):
@@ -39,7 +39,7 @@ class Game:
     def main_cycle(self):
         while self.active:
             self.update()
-            self.command_execution(*self.get_input())
+            self.engine.execute_command(*self.engine.get_command_and_args())
 
     ############################################################################
     #                       In-Game Methods (Commands)                         #
@@ -50,9 +50,9 @@ class Game:
             if func in self.command_pool:
                 self.ui.print(inspect.getdoc(self.command_pool[func]))
             else:
-                self.ui.print(lines["wrong_func_info"], func)
+                self.ui.print(_lines["wrong_func_info"], func)
         else:
-            self.ui.print(lines["game_info"])
+            self.ui.print(_lines["game_info"])
 
     def undo(self):
         for name, value in self.undo_queue[-1].items():
@@ -63,7 +63,7 @@ class Game:
     def quit(self):
         def yes():
             self.active = False
-        self.ui.yes_no_prompt(lines["quit_message"], (yes, (), {}))
+        self.ui.yes_no_prompt(_lines["quit_message"], (yes, (), {}))
 
     def new_game(self):
         self.update_map()
@@ -73,11 +73,7 @@ class Game:
     #                             Base Game Methods                            #
     ############################################################################
 
-    def __init__(self, ui: UI):
-
-        ## In-Game vars
-        self.ui = ui
-        self.active: bool = True
+    def __init__(self, ui: UI, lines: Lines):
 
         ## Saved variables
         self.time: Time = Time()
@@ -90,7 +86,7 @@ class Game:
             "event_queue": self.event_queue,
             "player": self.player
         }
-        if config["rogue_like"]:
+        if _config["rogue_like"]:
             self.saved_variables["map"] = self.map
         self.undo_queue: list[dict[str, Any]] = []
 
@@ -152,80 +148,24 @@ class Game:
             **interaction_commands,
             **info_commands
         )
-        if config["debug_enabled"]:
+        if _config["debug_enabled"]:
             self.command_pool.update(
                 debug_commands
             )
 
-
-    def type_casting(self, args: list[Any]):
-        for i, arg in enumerate(args):
-            arg = str(arg).lower()
-            if arg in ("true", "false"):
-                args[i] = bool(arg)
-            elif arg == "none":
-                args[i] = None
-            else:
-                try:
-                    if arg.find(".") == 1 or arg.find(",") == 1:
-                        args[i] = float(arg)
-                except ValueError:
-                    try:
-                        args[i] = int(arg)
-                    except ValueError:
-                        pass
-
-        return args
-
-    def get_input(self):
-        user_input = str()
-        while not user_input:
-            user_input = self.ui.input(lines["command_enter"]).split(maxsplit=1)
-
-        return (
-            user_input[0].lower(),  # ! lower() используется. если команды регистрочувствительны - это проблема
-            self.type_casting(user_input[1].split()) if len(user_input) > 1 else []
-        )
-
-    def command_execution(self, command: str, args: FuncArgs):
-        if command in self.command_pool:
-            sig = inspect.signature(self.command_pool[command])
-            args_amount = len(args)
-            expected_args_minimum_amount = len(sig.parameters) - len(tuple(k for k, v in sig.parameters.items() if v.default is not inspect.Parameter.empty))
-            expected_args_maximum_amount = len(sig.parameters)
-
-            if expected_args_minimum_amount <= args_amount <= expected_args_maximum_amount:
-                for arg, expected_arg in zip(args, sig.parameters):
-                    expected_type = sig.parameters[expected_arg].annotation
-                    if not isinstance(arg, expected_type):
-                        self.ui.print(
-                            lines["wrong_argument_type1"], arg, ". ",
-                            lines["wrong_argument_type2"], expected_type, sep=""
-                        )
-                        break
-                else:
-                    self.command_pool[command](*args)
-                    logging.debug(
-                        "Executed %s with arguments: %s",
-                        self.command_pool[command], *args
-                    )
-            else:
-                self.ui.print(
-                    lines["wrong_arguments_amount1"], expected_args_minimum_amount,
-                    lines["wrong_arguments_amount2"], expected_args_maximum_amount
-                )
-        else:
-            self.ui.print(lines["wrong_command"])
+        ## In-Game vars
+        self.ui = ui
+        self.lines = lines
+        self.engine = Engine(ui, self.command_pool, lines)
+        self.active: bool = True
 
     def main(self):
-        self.ui.print(lines["hello"])
-        self.ui.menu({lines["new_game_choose"]: (self.new_game, (), {})})
+        self.ui.print(_lines["hello"])
+        self.ui.menu({_lines["new_game_choose"]: (self.new_game, (), {})})
 
 
 def main():
-    ui = CLI()
-    game = Game(ui)
+    lines = Lines()
+    ui = CLI(lines)
+    game = Game(ui, lines)
     game.main()
-
-if __name__ == "__main__":
-    main()

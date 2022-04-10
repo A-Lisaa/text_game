@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from utils.type_aliases import FuncTuple
+from ..utils.type_aliases import FuncTuple
 
 
 class UI(ABC):
@@ -9,7 +9,7 @@ class UI(ABC):
         ...
 
     @abstractmethod
-    def input(self, message: str) -> str:
+    def input(self, prompt: str) -> str:
         ...
 
     @abstractmethod
@@ -17,5 +17,5 @@ class UI(ABC):
         ...
 
     @abstractmethod
-    def yes_no_prompt(self, prompt: str, yes_tuple: FuncTuple, no_tuple: FuncTuple = (lambda: None, [], {})):
+    def yes_no_prompt(self, prompt: str, yes_tuple: FuncTuple, no_tuple: FuncTuple = (lambda: None, (), {})):
         ...

@@ -2,9 +2,9 @@ import os
 import pickle
 from typing import Any
 
-from utils.cfg import Config
-from utils.lines import Lines
-from utils.logger import get_logger
+from .utils.cfg import Config
+from .utils.lines import Lines
+from .utils.logger import get_logger
 
 _logger = get_logger(__file__)
 _config = Config()
