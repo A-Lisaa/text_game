@@ -1,5 +1,3 @@
-import math
-
 import attr
 
 from .item import Item
@@ -7,11 +5,12 @@ from .utils.logger import get_logger
 
 _logger = get_logger(__file__)
 
+
 @attr.define
 class Storage:
-    cells_threshold: int = 100500
-    volume_threshold: float = math.inf
-    weight_threshold: float = math.inf
+    cells_threshold: int = -1
+    volume_threshold: float = -1
+    weight_threshold: float = -1
     _items: list[list[Item]] = attr.Factory(list)
     _cells_fullness: int = 0
     _volume_fullness: float = 0
@@ -25,12 +24,10 @@ class Storage:
 
     def _addition_update(self, item: Item):
         self._cells_fullness += 1
-        self._volume_fullness += item.volume
         self._weight_fullness += item.weight
 
     def _removal_update(self, item: Item):
         self._cells_fullness -= 1
-        self._volume_fullness -= item.volume
         self._weight_fullness -= item.weight
 
     @property
@@ -49,7 +46,6 @@ class Storage:
     def _check_fittings(self, item: Item, item_cell_index: int) -> bool:
         return all((
             self.get_cell_size(item_cell_index) == item.stack_size,
-            self._volume_fullness + item.volume <= self.volume_threshold,
             self._weight_fullness + item.weight <= self.weight_threshold,
         ))
 

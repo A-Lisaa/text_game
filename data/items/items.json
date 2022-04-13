@@ -1,0 +1,27 @@
+{
+    "chestplate": {
+        "type": ["Item", "ItemEquipment"],
+        "name": "Chestplate",
+        "stack_size": 1,
+        "weight": 4200,
+        "cost": 500,
+        "durability": 400
+    },
+    "apple": {
+        "type": ["Item", "ItemConsumable"],
+        "name": "Apple",
+        "stack_size": 64,
+        "weight": 50,
+        "cost": 20,
+        "consumption_time": 3000
+    },
+    "bread_sword": {
+        "type": ["Item", "ItemConsumable", "ItemEquipment"],
+        "name": "Bread Sword",
+        "stack_size": 1,
+        "weight": 500,
+        "cost": 50,
+        "consumption_time": 3000,
+        "durability": 50
+    }
+}
