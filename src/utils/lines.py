@@ -1,18 +1,15 @@
-from .cfg import Config
+from .. import globs
 from .files_IO import read_json_file, write_json_file
-from .logger import get_logger
 
-_logger = get_logger(__file__)
-_config = Config()
 
 class Lines:
-    def __init__(self, lines_filepath: str = _config["lines_path"]):
+    def __init__(self, lines_filepath: str | None = None):
         """Держатель текста, работать через кв. скобки или через методы
 
         Args:
             lines_filepath (str, optional): Путь к файлу с текстом. Defaults to _config["lines_path"].
         """
-        self.lines_filepath = lines_filepath
+        self.lines_filepath = lines_filepath if lines_filepath is not None else globs.config["lines_path"]
         self._lines = self._get_lines()
 
     def __getitem__(self, name: str) -> str:
@@ -22,26 +19,24 @@ class Lines:
         self._lines[name] = value
 
     def _get_lines(self, line_filepath: str | None = None) -> dict[str, str]:
-        if line_filepath is None:
-            line_filepath = self.lines_filepath
-        return read_json_file(line_filepath)
+        return read_json_file(line_filepath if line_filepath is not None else self.lines_filepath)
 
     def _set_lines(self, line_filepath: str | None = None):
         if line_filepath is None:
             line_filepath = self.lines_filepath
-        write_json_file(self._lines, line_filepath)
+        write_json_file(self._lines, line_filepath if line_filepath is not None else self.lines_filepath)
 
     def get_line(self, name: str) -> str:
         try:
             return self._lines[name]
         except KeyError:
-            _logger.error("Line %s not found", name)
+            globs.logger.error("Line %s not found", name)
             return name
 
     def set_line(self, name: str, value: str):
         self._lines[name] = value
         self._set_lines()
-        _logger.info("Line %s set with value: %s", name, value)
+        globs.logger.info("Line %s set with value: %s", name, value)
 
     def update_lines(self, lines_filepath: str | None = None):
         if lines_filepath is None:

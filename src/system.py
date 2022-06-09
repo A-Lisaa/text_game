@@ -1,43 +1,77 @@
+import inspect
 import os
 import pickle
 from typing import Any
 
-from .utils.cfg import Config
-from .utils.lines import Lines
-from .utils.logger import get_logger
-
-_logger = get_logger(__file__)
-_config = Config()
-_text_pool = Lines()
+from . import globs
+from .utils.type_aliases import CommandsDict
 
 
-def save(variables: Any, save_name: str = "save"):
-    if not os.path.exists(_config["saves_path"]):
-        os.makedirs(_config["saves_path"])
+class System:
+    def commands(self) -> CommandsDict:
+        return {
+            "undo": self.undo,
+            "info": self.info,
+            "help": self.info,
+            "save": self.save,
+            "load": self.load,
+            "quit": self.quit,
+            "exit": self.quit,
+        }
 
-    with open(f"{_config['saves_path']}/{save_name}.sav", "wb", encoding="utf-8") as save_file:
-        pickle.dump(variables, save_file)
+    def undo(self):
+        for name, value in globs.game.undo_queue[-1].items():
+            setattr(globs.game, name, value)
 
-    _logger.info("Saved a game with %s to %s", variables, save_name)
-
-def load(final_object: object, save_name: str = "save"):
-    if not os.path.exists(f"{_config['saves_path']}/{save_name}.sav"):
-        print(_text_pool["save_not_found_error"])
-        return
-
-    variables = []
-    with open(f"{_config['saves_path']}/{save_name}.sav", "rb") as save_file:
-        while True:
-            try:
-                variables.append(pickle.load(save_file))
-            except EOFError:
-                break
-    variables = variables[0]
-
-    for name, value in variables.items():
-        if name in final_object:
-            setattr(final_object, name, value)
+    def info(self, func: str | None = None):
+        """
+        Информация о информации? Серьезно?
+        """
+        if func is not None:
+            if func in globs.game.command_pool:
+                globs.ui.print(inspect.getdoc(globs.game.command_pool[func]))
+            else:
+                globs.ui.print(globs.lines["wrong_func_info"], func)
         else:
-            _logger.error("No name %s in %s", name, dir(final_object))
+            globs.ui.print(globs.lines["game_info"])
 
-    _logger.info("Loaded a game from %s to %s", save_name, final_object)
+    def quit(self):
+        def yes():
+            globs.game.active = False
+        globs.ui.yes_no_prompt(globs.lines["quit_message"], yes)
+
+    def save(self, variables: Any, save_name: str = "save"):
+        if not os.path.exists(globs.config["saves_path"]):
+            os.makedirs(globs.config["saves_path"])
+
+        with open(f"{globs.config['saves_path']}/{save_name}.sav", "wb", encoding="utf-8") as save_file:
+            pickle.dump(variables, save_file)
+
+        globs.logger.info("Saved a game with %s to %s", variables, save_name)
+
+    def load(self, save_name: str = "save"):
+        if not os.path.exists(f"{globs.config['saves_path']}/{save_name}.sav"):
+            globs.ui.print(globs.lines["save_not_found_error"])
+            return
+
+        variables = []
+        with open(f"{globs.config['saves_path']}/{save_name}.sav", "rb") as save_file:
+            while True:
+                try:
+                    variables.append(pickle.load(save_file))
+                except EOFError:
+                    break
+        variables = variables[0]
+
+        if len(variables) != len(globs.game.saved_variables):
+            globs.ui.print(globs.lines["incompatible_save"])
+            return
+
+        for name, value in variables.items():
+            if name in globs.game.saved_variables:
+                setattr(globs.game, name, value)
+            else:
+                globs.ui.print(globs.lines["incompatible_save"])
+                return
+
+        globs.logger.info("Loaded a game from %s to %s", save_name, globs.game)

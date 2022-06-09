@@ -4,12 +4,11 @@ from typing import Any
 
 import attr
 
+from . import globs
 from .exceptions import ItemError
 from .item_types import ITEM_TYPES
 from .utils.files_IO import read_json_file
-from .utils.logger import get_logger
 
-_logger = get_logger(__file__)
 
 class Items:
     def __init__(self, items: dict[str, Any]):
@@ -35,7 +34,7 @@ class Items:
         inherited_class = type("inherited_class", types, {})
         cls = attr.define(type(properties["name"].replace(" ", ""), (inherited_class,), {}))
         if len(properties) != len(cls.__init__.__defaults__):
-            _logger.critical(
+            globs.logger.critical(
                 "Wrong amount of properties for %s, should be %i",
                 name, len(cls.__init__.__defaults__)
             )
@@ -56,6 +55,6 @@ class Items:
 
     def get_item(self, name: str) -> Any:
         if name not in self._items:
-            _logger.critical("Item %s not found", name)
+            globs.logger.critical("Item %s not found", name)
             raise ItemError(f"Item {name} not found")
         return copy.deepcopy(self._items[name])

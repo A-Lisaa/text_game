@@ -9,3 +9,5 @@ FuncArgs = Sequence[Any]
 FuncKwargs = Mapping[str, Any]
 # Кортеж из функции, позиц. аргументов и ключ. аргументов
 FuncTuple = tuple[Func, FuncArgs, FuncKwargs]
+# Словарь команд
+CommandsDict = dict[str, Func]

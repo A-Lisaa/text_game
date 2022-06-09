@@ -3,15 +3,11 @@ import random
 
 import attr
 
+from . import globs
 from .plan import Plan
 from .position import Position
 from .room import Room
-from .utils.cfg import Config
 from .utils.container import Container
-from .utils.logger import get_logger
-
-_logger = get_logger(__file__)
-_config = Config()
 
 
 @attr.define
@@ -35,11 +31,11 @@ class Character:
 
                     self.inventory[found_item] += 1
                     location.loot[found_item] -= 1
-                    print(_lines["found_something"], found_item)
+                    print(globs.lines["found_something"], found_item)
                 else:
-                    print(_lines["nothing_found"])
+                    print(globs.lines["nothing_found"])
         else:
-            print(_lines["nothing_to_find"])
+            print(globs.lines["nothing_to_find"])
 
     def movement(self, plan: Plan, x: int = 0, y: int = 0):
         """
@@ -51,11 +47,11 @@ class Character:
         """
         for _ in range(x):
             self.position.x += 1
-            if _config["rogue_like"] or plan.position_exists():
+            if globs.config["rogue_like"] or plan.position_exists():
                 plan.update(self.position)
         for _ in range(y):
             self.position.y += 1
-            if _config["rogue_like"] or plan.position_exists():
+            if globs.config["rogue_like"] or plan.position_exists():
                 plan.update(self.position)
 
     def rotation_movement(self, distance: float, angle: float, angle_in_degrees: bool = True):

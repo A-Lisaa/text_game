@@ -3,9 +3,8 @@ from typing import Any
 
 import attr
 
-from .utils.logger import get_logger
+from . import globs
 
-_logger = get_logger(__file__)
 
 @attr.define(slots=False)
 class Item(ABC):
@@ -13,7 +12,6 @@ class Item(ABC):
     Базовый класс предметов
     """
     name: str = NotImplemented
-    stack_size: int = NotImplemented
     weight: float = NotImplemented
     cost: float = NotImplemented
 
@@ -25,11 +23,11 @@ class Item(ABC):
     def from_dict(cls, dic: dict[str, Any]):
         if cls.__name__ != "Item":
             return cls(**dic)
-        _logger.error("Trying to instantiate abstract class Item with from_dict")
+        globs.logger.error("Trying to instantiate abstract class Item with from_dict")
 
-    @abstractmethod
-    def __str__(self):
-        ...
+    # @abstractmethod
+    # def __str__(self):
+    #     ...
 
 
 @attr.define(slots=False)

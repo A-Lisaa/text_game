@@ -1,6 +1,5 @@
 import attr
 
-from .character import Character
 from .event import Event
 from .utils.container import Container
 
@@ -11,7 +10,7 @@ class Room:
     Базовый класс локации
     """
     name: str
-    characters: list[Character] = attr.Factory(list)
+    characters = attr.Factory(list)
     events: list[Event] = attr.Factory(list)
     loot: Container = Container()
     times_visited: int = 0

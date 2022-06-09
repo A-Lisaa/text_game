@@ -1,2 +1,5 @@
-class ItemError(ValueError):
+class ItemError(NameError):
+    ...
+
+class StorageError(NameError):
     ...

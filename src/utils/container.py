@@ -1,9 +1,8 @@
 from collections import UserDict
 from typing import Any
 
-from .logger import get_logger
+from .. import globs
 
-_logger = get_logger(__file__)
 
 class Container(UserDict):
     def __init__(self, no_value: Any = 0):
@@ -17,7 +16,7 @@ class Container(UserDict):
 
     def __missing__(self, key: Any):
         self.data[key] = self.no_value
-        _logger.debug("Container key %s is missing, set to value %s", key, self.no_value)
+        globs.logger.debug("Container key %s is missing, set to value %s", key, self.no_value)
         return self.data[key]
 
     def __setitem__(self, key: Any, value: Any):

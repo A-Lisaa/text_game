@@ -2,13 +2,12 @@ import json
 import os
 from typing import Any
 
-from .logger import get_logger
+from .. import globs
 
-_logger = get_logger(__file__)
 
 def read_json_file(path: str) -> Any:
     if not os.path.exists(path):
-        _logger.critical("Could not find file %s", path)
+        globs.logger.critical("Could not find file %s", path)
         raise OSError(f"Could not find file {path}")
     with open(path, encoding="utf-8") as json_file:
         return json.load(json_file)

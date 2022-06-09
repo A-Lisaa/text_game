@@ -1,10 +1,8 @@
 import attr
 
-from .utils.__init_paths__ import data_path
+from . import globs
 from .utils.files_IO import read_json_file
-from .utils.logger import get_logger
 
-_logger = get_logger(__file__)
 
 @attr.define
 class Time:
@@ -17,7 +15,21 @@ class Time:
     _hour: int = 0
     _minute: int = 0
     _second: int = 0
-    months_duration: dict[str, int] = read_json_file(f"{data_path}/months_duration.json")
+    months_duration: dict[str, int] = {
+        "1": 31,
+        "2.25": 29,
+        "2.75": 28,
+        "3": 31,
+        "4": 30,
+        "5": 31,
+        "6": 30,
+        "7": 31,
+        "8": 31,
+        "9": 30,
+        "10": 31,
+        "11": 30,
+        "12": 31
+    }
 
     def is_leap_year(self, year: int | None = None) -> bool:
         """Проверка года на високосность, если year = None, проверяется текущий год класса
@@ -41,7 +53,7 @@ class Time:
     @year.setter
     def year(self, y: int):
         self._year = y
-        _logger.debug("Set year to %i", self.year)
+        globs.logger.debug("Set year to %i", self.year)
 
     @property
     def month(self):
@@ -53,7 +65,7 @@ class Time:
         if m % 12 == 0:
             m += 1
         self._month = m % 12
-        _logger.debug("Set month to %i", self.month)
+        globs.logger.debug("Set month to %i", self.month)
 
     @property
     def day(self):
@@ -72,7 +84,7 @@ class Time:
                 d -= current_month_duration
                 self._day = 1
         self._day = d
-        _logger.debug("Set day to %i", self.day)
+        globs.logger.debug("Set day to %i", self.day)
 
     @property
     def hour(self):
@@ -82,7 +94,7 @@ class Time:
     def hour(self, h: int):
         self.day += h // 24
         self._hour = h % 24
-        _logger.debug("Set hour to %i", self.hour)
+        globs.logger.debug("Set hour to %i", self.hour)
 
     @property
     def minute(self):
@@ -92,7 +104,7 @@ class Time:
     def minute(self, m: int):
         self.hour += m // 60
         self._minute = m % 60
-        _logger.debug("Set minute to %i", self.minute)
+        globs.logger.debug("Set minute to %i", self.minute)
 
     @property
     def second(self):
@@ -102,4 +114,4 @@ class Time:
     def second(self, s: int):
         self.minute += s // 60
         self._second = s % 60
-        _logger.debug("Set second to %i", self.second)
+        globs.logger.debug("Set second to %i", self.second)

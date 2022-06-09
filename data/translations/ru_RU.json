@@ -8,11 +8,15 @@
     "command_enter": "Введите команду: ",
     "choose_menu_answer": "Выберите вариант ответа из предложенных: ",
     "wrong_menu_answer": "Неверный вариант",
-    "exit_message": "Вы действительно хотите выйти",
     "new_game_choose": "Начать новую игру",
+
+    "quit_message": "Вы действительно хотите выйти",
+    "yes_choice": "Да",
+    "no_choice": "Нет",
 
     "save_not_found_error": "Не найден такой файл сохранения",
     "corrupted_save_error": "Сохранение повреждено",
+    "incompatible_save": "Несовместимое сохранение",
 
     "game_info": "Пишите команды, получайте вывод",
     "wrong_func_info": "Нет функции",

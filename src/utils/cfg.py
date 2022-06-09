@@ -2,23 +2,22 @@ import json
 import os
 from typing import Any
 
-from .__init_paths__ import settings_path
+from .. import globs
 from .cfg_default import CFG_DEFAULT
 from .files_IO import read_json_file, write_json_file
-from .logger import get_logger
 
-_logger = get_logger(__file__)
 
 class Config:
-    def __init__(self, settings_filepath: str = settings_path):
+    def __init__(self, settings_filepath: str | None = None):
         """Класс конфига, получайте и ставьте значения через кв. скобки или методами
 
         Args:
             settings_filepath (str, optional): Путь к файлу настроек. Defaults to settings_path.
         """
-        self.settings_filepath = settings_filepath
-        self._settings = self._get_settings()
+
+        self.settings_filepath = settings_filepath if settings_filepath is not None else globs.settings_path
         self._defaults = json.loads(CFG_DEFAULT)
+        self._settings = self._get_settings()
 
     def __getitem__(self, name: str) -> Any:
         return self.get_setting(name)
@@ -44,28 +43,28 @@ class Config:
         try:
             return self._settings[name]
         except KeyError:
-            _logger.error("Setting %s not found", name)
+            globs.logger.error("Setting %s not found", name)
             return name
 
     def set_setting(self, name: str, value: Any):
         self._settings[name] = value
         self._set_settings()
-        _logger.debug("Set %s with value: %s", name, value)
+        globs.logger.debug("Set %s with value: %s", name, value)
 
     def get_default(self, name: str) -> Any:
         try:
             return self._defaults[name]
         except KeyError:
-            _logger.error("Default setting %s not found", name)
+            globs.logger.error("Default setting %s not found", name)
             return name
 
     def set_default(self, name: str):
         self.set_setting(name, self.get_default(name))
-        _logger.debug("Setting %s set to default", name)
+        globs.logger.debug("Setting %s set to default", name)
 
     def set_all_defaults(self):
         self._settings = self._defaults
-        _logger.debug("All settings set to default")
+        globs.logger.debug("All settings set to default")
 
     def update_settings(self, settings_filepath: str | None = None):
         if settings_filepath is not None:
