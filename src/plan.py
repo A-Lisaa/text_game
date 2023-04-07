@@ -1,28 +1,29 @@
 import random
+from collections.abc import Sequence
 
 import attr
 
 from . import globs
 from .position import Position
-from .room import Room
-from .utils.container import Container
+from .room import Room, rooms
+from .utils.data_structures import Container
 
 
 @attr.define
 class Plan:
     _plan: dict[Position, Room] = {}
 
-    @classmethod
-    def from_scratch(cls):
-        globs.logger.debug("Made a Plan from scratch")
-        return cls()
-
-    @classmethod
-    def from_json(cls, filepath: str):
-        globs.logger.debug("Made a Plan from JSON file %s", filepath)
-
     def position_exists(self, position: Position) -> bool:
         return position in self._plan
+
+    def generate_room(self, possible_rooms: Sequence[type[Room]] | None = None) -> Room:
+        if possible_rooms is None:
+            possible_rooms = rooms
+
+        room_type = random.choice(possible_rooms)
+
+        return room_type.create_with_loot()
+
 
     def update(
         self,

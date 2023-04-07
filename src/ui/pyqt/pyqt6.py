@@ -27,9 +27,9 @@ class PyQt6(Ui_MainWindow, UI, QMainWindow):
         if not globs.game.active:
             self.close()
 
-    def print(self, *values, sep = " ", end = "\n"):
+    def print(self, *values, sep = " ", end = "\n\n"):
         message = sep.join(str(value) for value in values) + end
-        self.outputField.append(message)
+        self.outputField.insertPlainText(message)
 
     def input(self, prompt):
         ...

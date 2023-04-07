@@ -1,7 +1,6 @@
 import attr
 
 from . import globs
-from .utils.files_IO import read_json_file
 
 
 @attr.define

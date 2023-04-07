@@ -1,5 +1,3 @@
-import test4
+from itertools import zip_longest
 
-
-def bar():
-    test4.foo()
+print(list(zip_longest(range(5), range(10), range(3), fillvalue=0)))

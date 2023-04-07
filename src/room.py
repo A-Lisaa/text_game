@@ -1,27 +1,63 @@
-import attr
+from abc import abstractmethod
 
-from .event import Event
-from .utils.container import Container
+from .utils.data_structures import Container, WeightedList
 
 
-@attr.define
 class Room:
     """
-    Базовый класс локации
+    Базовый класс рогалик-локации
     """
-    name: str
-    characters = attr.Factory(list)
-    events: list[Event] = attr.Factory(list)
-    loot: Container = Container()
-    times_visited: int = 0
-    loot_chance: float = 0.5
+    def __init__(self, loot: Container):
+        self.loot = loot
+        self.times_visited = 0
 
+    @staticmethod
+    @abstractmethod
+    def get_name() -> str:
+        ...
 
-@attr.define
+    @staticmethod
+    @abstractmethod
+    def get_possible_loot() -> WeightedList:
+        ...
+
+    @staticmethod
+    @abstractmethod
+    def get_loot_chance() -> WeightedList:
+        ...
+
+    @classmethod
+    def create_with_loot(cls, loot: WeightedList | None = None):
+        if loot is None:
+            loot = cls.get_possible_loot()
+        return cls(Container(loot))
+
 class RoomCity(Room):
-    name = "City"
+    @staticmethod
+    def get_name():
+        return "City"
+
+    @staticmethod
+    def get_possible_loot():
+        return {}
+
+    @staticmethod
+    def get_loot_chance():
+        return 0.5
 
 
-@attr.define
 class RoomForest(Room):
-    name = "Forest"
+    @staticmethod
+    def get_name():
+        return "Forest"
+
+    @staticmethod
+    def get_possible_loot():
+        return {}
+
+    @staticmethod
+    def get_loot_chance():
+        return 0.5
+
+
+rooms = (RoomCity, RoomForest)

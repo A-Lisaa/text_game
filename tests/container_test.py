@@ -1,6 +1,6 @@
 import unittest
 
-from src.utils.container import Container
+from src.utils.data_structures import Container
 
 
 class ContainerTest(unittest.TestCase):

@@ -18,12 +18,3 @@ config: _Config = _Config()
 from .utils.lines import Lines as _Lines
 
 lines: _Lines = _Lines()
-
-from .ui.base import UI as _UI
-from .ui.cli.cli import CLI as _CLI
-
-ui: _UI = _CLI()
-
-from .game import Game as _Game
-
-game: _Game = _Game()
